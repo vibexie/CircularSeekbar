@@ -11,6 +11,7 @@ import android.graphics.RectF;
 import android.graphics.SweepGradient;
 import android.media.ThumbnailUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -46,12 +47,10 @@ public class CircularSeekbar extends View {
 
 	private float innerRadius;// 圆环内部的半径，即可控拖拽区域内圆环
 
-	private int angle = 0;// 弧度值
+	private float angle = 0;// 弧度值
 
 	private int maxProgress = 100;// 最大进度值
 
-	private int newPercent;
-	
 	private int progress;
 
 	private int progressPercent;
@@ -61,6 +60,8 @@ public class CircularSeekbar extends View {
 	private boolean isShowProgress = true;// 是否显示百分比文字,默认显示
 	
 	private boolean isDraging = false;
+
+	private boolean isInited = false;
     
 	// 设定默认颜色值
 	private static int[] mColors={0xfff7ffb2, 0xffa2e9b5, 0xff54d4b8};
@@ -164,14 +165,22 @@ public class CircularSeekbar extends View {
 
 		if (isShowProgress) {
 			if (progressPercent > 100){
-				newPercent = 100;
-			} else {
-				newPercent = progressPercent;
+				progressPercent = 100;
 			}
+
 			String progressText = progressPercent + "%";
 			Paint.FontMetrics fontMetrics = progressTextPaint.getFontMetrics();
 			float textWidth = progressTextPaint.measureText(progressText);
-			canvas.drawText(newPercent + "%", cx - textWidth / 2, cy + (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom, progressTextPaint);
+			canvas.drawText(progressPercent + "%", cx - textWidth / 2, cy + (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom, progressTextPaint);
+		}
+
+		if (onProgressChangeListener != null) {
+			onProgressChangeListener.onProgressBack(progressPercent);
+		}
+
+		if (!isInited) {
+			isInited = true;
+			onInitListener.back(true);
 		}
 		super.onDraw(canvas);
 	}
@@ -193,14 +202,14 @@ public class CircularSeekbar extends View {
 				return  true;
 			}
 			isDraging = true;
-			moved(x, y, false);
+			moved(x, y);
 
 			break;
 		case MotionEvent.ACTION_MOVE:
 			if (!isDraging) {
 				return true;
 			}
-			moved(x, y, false);
+			moved(x, y);
 
 			break;
 		case MotionEvent.ACTION_UP:
@@ -209,32 +218,26 @@ public class CircularSeekbar extends View {
 		}
 		return true;
 	}
-	
 
-	public void moved(float x, float y, boolean up) {
+	public void moved(float x, float y) {
 		// 如果触摸点在外圆半径的一个适配区域内
 
 		// 将角度转换成弧度
-		float degrees = (float) ((float) ((Math.toDegrees(Math.atan2(x - cx, cy - y)) + 360.0)) % 360.0);
+		angle = (float) ((float) ((Math.toDegrees(Math.atan2(x - cx, cy - y)) + 360.0)) % 360.0);
 
 		// 使弧度值永远为正
-		if (degrees < 0) {
-			degrees += 2 * Math.PI;
+		if (angle < 0) {
+			angle += 2 * Math.PI;
 		}
 
 		pointX = (float) (cx + ringRadius * Math.cos(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
 		pointY = (float) (cy + ringRadius * Math.sin(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
 
-		setAngle(Math.round(degrees));
-	}
-	
-	private void setAngle(int angle) {
-		this.angle = angle;
-		float donePercent = (((float) this.angle) / 360) * maxProgress;
+		float donePercent = ((angle) / 360) * maxProgress;
 		setProgressPercent(Math.round(donePercent));
 		invalidate();
 	}
-	
+
 	public void setProgressPercent(int progressPercent) {
 		this.progressPercent = progressPercent;
 	}
@@ -242,11 +245,29 @@ public class CircularSeekbar extends View {
 	public int getProgressPercent() {
 		return progressPercent;
 	}
-	
-	public int getMaxProgress() {
-		return maxProgress;
+
+	public void setProgress(final float progress) {
+		if (!isInited) {
+			setOnInitListener(new OnInitListener() {
+				@Override
+				public void back(boolean init) {
+					if (init) {
+						setProgress2(progress);
+					}
+				}
+			});
+		} else {
+			setProgress2(progress);
+		}
 	}
-	
+
+	private void setProgress2(float progress) {
+		float newAngle = progress / maxProgress * 360;
+		float x = (float) (cx + ringRadius * Math.cos(Math.toRadians(newAngle) - (Math.PI / 2)));
+		float y = (float) (cy + ringRadius * Math.sin(Math.toRadians(newAngle) - (Math.PI / 2)));
+		moved(x, y);
+	}
+
 	public static int dp2Px(Context context, float dp) {
 		final float scale = context.getResources().getDisplayMetrics().density;
 		return (int) (dp * scale + 0.5f);
@@ -255,5 +276,25 @@ public class CircularSeekbar extends View {
 	public static int px2Dp(Context context, float pxValue) {
 		final float scale = context.getResources().getDisplayMetrics().density;
 		return (int) (pxValue / scale + 0.5f);
+	}
+
+	public static interface OnProgressChangeListener {
+		void onProgressBack(int progress);
+	}
+
+	public OnProgressChangeListener onProgressChangeListener;
+
+	public void setOnProgressChangeListener(OnProgressChangeListener onProgressChangeListener) {
+		this.onProgressChangeListener = onProgressChangeListener;
+	}
+
+	private interface OnInitListener {
+		void back(boolean init);
+	}
+
+	private OnInitListener onInitListener;
+
+	public void setOnInitListener(OnInitListener onInitListener) {
+		this.onInitListener = onInitListener;
 	}
 }
