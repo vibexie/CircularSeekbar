@@ -14,13 +14,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        CircularSeekbar circularSeekbar = (CircularSeekbar) this.findViewById(R.id.seekBar);
-        circularSeekbar.setOnProgressChangeListener(new CircularSeekbar.OnProgressChangeListener() {
-            @Override
-            public void onProgressBack(int progress) {
-                Log.e("test", "seek= " + progress);
-            }
-        });
-        circularSeekbar.setProgress(80);
+//        CircularSeekbar circularSeekbar = (CircularSeekbar) this.findViewById(R.id.seekBar);
+//        circularSeekbar.setOnProgressChangeListener(new CircularSeekbar.OnProgressChangeListener() {
+//            @Override
+//            public void onProgressBack(int progress) {
+//                Log.e("test", "seek= " + progress);
+//            }
+//        });
+//        circularSeekbar.setProgress(80);
     }
 }

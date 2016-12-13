@@ -15,12 +15,12 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class CircularSeekbar extends View {
-	private static final String TAG = "CircularSeekbar";
+public class CircularSeekbarSE extends View {
+	private static final String TAG = "CircularSeekbarSE";
 	private Context mContext;
 
-	private Bitmap mPointStart;// 点的图片
 	private Bitmap mPointEnd;// 点的图片
+	private Bitmap mPointStart;// 点的图片
 
 	private Paint backRing;// 背景圆环画笔
 
@@ -36,9 +36,13 @@ public class CircularSeekbar extends View {
 
 	private float cy;// 圆环中心位置y坐标
 
-	private float pointX;// 当前点的x坐标
+	private float pointXStart;// 当前点的x坐标
 
-	private float pointY;// 当前点的y坐标
+	private float pointYStart;// 当前点的y坐标
+
+	private float pointXEnd;// 当前点的x坐标
+
+	private float pointYEnd;// 当前点的y坐标
 
 	private float ringRadius;// 圆环的半径
 
@@ -48,17 +52,11 @@ public class CircularSeekbar extends View {
 
 	private float innerRadius;// 圆环内部的半径，即可控拖拽区域内圆环
 
-	private float angle = 0;// 弧度值
+	private float angleStart = 0;// 弧度值
 
-	private int maxProgress = 100;// 最大进度值
-
-	private int progress;
-
-	private int progressPercent;
+	private float angleEnd = 0;// 弧度值
 
 	private float left, right, top, bottom;
-
-	private boolean isShowProgress = true;// 是否显示百分比文字,默认显示
 
 	private boolean isDraging = false;
 
@@ -67,15 +65,15 @@ public class CircularSeekbar extends View {
 	// 设定默认颜色值
 	private static int[] mColors={0xfff7ffb2, 0xffa2e9b5, 0xff54d4b8};
 
-	public CircularSeekbar(Context context) {
+	public CircularSeekbarSE(Context context) {
 		super(context);
 	}
 
-	public CircularSeekbar(Context context, AttributeSet attrs) {
+	public CircularSeekbarSE(Context context, AttributeSet attrs) {
 		this(context, attrs, 0);
 	}
 
-	public CircularSeekbar(Context context, AttributeSet attrs, int defStyle) {
+	public CircularSeekbarSE(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		mContext = context;
 
@@ -98,7 +96,9 @@ public class CircularSeekbar extends View {
 		beginRing.setAntiAlias(true);
 
 		rect = new RectF();
-		mPointEnd = BitmapFactory.decodeResource(context.getResources(), R.drawable.touch);
+		mPointEnd = BitmapFactory.decodeResource(context.getResources(), R.drawable.touch2);
+		mPointStart = BitmapFactory.decodeResource(context.getResources(), R.drawable.touch);
+		mPointStart = ThumbnailUtils.extractThumbnail(mPointStart, dp2Px(mContext, 20), dp2Px(mContext, 20));
 		mPointEnd = ThumbnailUtils.extractThumbnail(mPointEnd, dp2Px(mContext, 20), dp2Px(mContext, 20));
 
 		progressTextPaint = new Paint();
@@ -129,8 +129,11 @@ public class CircularSeekbar extends View {
 		top = cy - ringRadius;// 渐变圆环外接矩形上边坐标
 		bottom = cy + ringRadius;// 渐变圆环外接矩形底部坐标
 
-        pointX = cx;
-        pointY = top;
+		pointXStart = cx;
+		pointYStart = top;
+
+        pointXEnd = cx;
+        pointYEnd = top;
 
 		rect.set(left, top, right, bottom); // 设置渐变圆环的位置
 	}
@@ -144,47 +147,23 @@ public class CircularSeekbar extends View {
         // 起始位置画一个圆点
 		canvas.drawCircle(cx, cy - ringRadius, (ringWidth * 2 + dp2Px(mContext, 1)) / 2, beginRing);
 
-		// 设定当前比例
-		for (int i = 0; i < mColors.length; i++) {
-			positions[i] = (((float) (i) / (mColors.length - 1)) * getProgressPercent() / 100);
-		}
-
-		// 新建渲染器
-		SweepGradient shader = new SweepGradient(cx, cy, mColors, positions);
-		// 新建矩阵,将渲染器旋转90度,从正上方开始
-		Matrix matrix = new Matrix();
-		matrix.setRotate(-90, cx, cy);
-		shader.setLocalMatrix(matrix);
-		// 设置渲染器
-		frontRing.setShader(shader);
-
 		// 画前面的圆环，每次刷新界面主要是改变这里的angle的值
-		canvas.drawArc(rect, 270, angle, false, frontRing);
+		Log.e(TAG, "angleStart=" + angleStart + "   angleEnd="+ angleEnd);
+		canvas.drawArc(rect, angleStart, angleEnd, false, frontRing);
 
 		// 画触摸点的图片
-		canvas.drawBitmap(mPointEnd, pointX - (mPointEnd.getWidth()) / 2, pointY - (mPointEnd.getWidth()) / 2, null);
+		canvas.drawBitmap(mPointStart, pointXStart - (mPointStart.getWidth()) / 2, pointYStart - (mPointStart.getWidth()) / 2, null);
 
-		if (isShowProgress) {
-			if (progressPercent > 100){
-				progressPercent = 100;
-			}
-
-			String progressText = progressPercent + "%";
-			Paint.FontMetrics fontMetrics = progressTextPaint.getFontMetrics();
-			float textWidth = progressTextPaint.measureText(progressText);
-			canvas.drawText(progressPercent + "%", cx - textWidth / 2, cy + (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom, progressTextPaint);
-		}
-
-		if (onProgressChangeListener != null) {
-			onProgressChangeListener.onProgressBack(progressPercent);
-		}
+		// 画触摸点的图片
+		canvas.drawBitmap(mPointEnd, pointXEnd - (mPointEnd.getWidth()) / 2, pointYEnd - (mPointEnd.getWidth()) / 2, null);
 
 		if (!isInited) {
 			isInited = true;
-			onInitListener.back(true);
 		}
 		super.onDraw(canvas);
 	}
+
+	private  boolean isDragStart = false;
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -202,15 +181,28 @@ public class CircularSeekbar extends View {
 				isDraging = false;
 				return  true;
 			}
-			isDraging = true;
-			moved(x, y);
+
+			if (Math.abs(pointXEnd - x) < 60 && Math.abs(pointYEnd - y) < 60) {
+				isDragStart = false;
+				movedEnd(x, y);
+				isDraging = true;
+			} else if (Math.abs(pointXStart - x) < 60 && Math.abs(pointYStart - y) < 60) {
+				isDragStart = true;
+				movedStart(x, y);
+				isDraging = true;
+			}
 
 			break;
 		case MotionEvent.ACTION_MOVE:
 			if (!isDraging) {
 				return true;
 			}
-			moved(x, y);
+
+			if (isDragStart) {
+				movedStart(x, y);
+			} else {
+				movedEnd(x, y);
+			}
 
 			break;
 		case MotionEvent.ACTION_UP:
@@ -220,53 +212,62 @@ public class CircularSeekbar extends View {
 		return true;
 	}
 
-	public void moved(float x, float y) {
+	public void movedEnd(float x, float y) {
 		// 如果触摸点在外圆半径的一个适配区域内
 
 		// 将角度转换成弧度
-		angle = (float) ((float) ((Math.toDegrees(Math.atan2(x - cx, cy - y)) + 360.0)) % 360.0);
+		angleEnd = (float) ((float) ((Math.toDegrees(Math.atan2(x - cx, cy - y)) + 360.0)) % 360.0);
+		float rawAngleEnd = angleEnd;
 
 		// 使弧度值永远为正
-		if (angle < 0) {
-			angle += 2 * Math.PI;
+		if (angleEnd < 0) {
+			angleEnd += 2 * Math.PI;
 		}
 
-		pointX = (float) (cx + ringRadius * Math.cos(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
-		pointY = (float) (cy + ringRadius * Math.sin(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
+		angleStart = (float) ((float) ((Math.toDegrees(Math.atan2(pointXStart - cx, cy - pointYStart)) + 360.0)) % 360.0);
 
-		float donePercent = ((angle) / 360) * maxProgress;
-		setProgressPercent(Math.round(donePercent));
+		if (angleEnd < angleStart) {
+			angleEnd = 360 - angleStart + rawAngleEnd;
+		} else {
+			angleEnd = angleEnd - angleStart;
+		}
+
+		Log.e(TAG, "----angleStart=" + angleStart + "   angleEnd=" + angleEnd);
+		angleStart += 270;
+
+
+
+		pointXEnd = (float) (cx + ringRadius * Math.cos(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
+		pointYEnd = (float) (cy + ringRadius * Math.sin(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
+
 		invalidate();
 	}
 
-	public void setProgressPercent(int progressPercent) {
-		this.progressPercent = progressPercent;
-	}
-	
-	public int getProgressPercent() {
-		return progressPercent;
-	}
+	public void movedStart(float x, float y) {
+		// 如果触摸点在外圆半径的一个适配区域内
 
-	public void setProgress(final float progress) {
-		if (!isInited) {
-			setOnInitListener(new OnInitListener() {
-				@Override
-				public void back(boolean init) {
-					if (init) {
-						setProgress2(progress);
-					}
-				}
-			});
-		} else {
-			setProgress2(progress);
+		// 将角度转换成弧度
+		angleStart = (float) ((float) ((Math.toDegrees(Math.atan2(x - cx, cy - y)) + 360.0)) % 360.0);
+
+		angleEnd = (float) ((float) ((Math.toDegrees(Math.atan2(pointXEnd - cx, cy - pointYEnd)) + 360.0)) % 360.0);
+		float rawAngleEnd = angleEnd;
+		angleEnd = angleEnd - angleStart;
+
+		// 使弧度值永远为正
+		if (angleStart < 0) {
+			angleStart += 2 * Math.PI;
 		}
-	}
 
-	private void setProgress2(float progress) {
-		float newAngle = progress / maxProgress * 360;
-		float x = (float) (cx + ringRadius * Math.cos(Math.toRadians(newAngle) - (Math.PI / 2)));
-		float y = (float) (cy + ringRadius * Math.sin(Math.toRadians(newAngle) - (Math.PI / 2)));
-		moved(x, y);
+		if (angleStart > rawAngleEnd) {
+			angleEnd = 360 - angleStart + rawAngleEnd;
+		}
+
+		angleStart -= 90;
+
+		pointXStart = (float) (cx + ringRadius * Math.cos(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
+		pointYStart = (float) (cy + ringRadius * Math.sin(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
+
+		invalidate();
 	}
 
 	public static int dp2Px(Context context, float dp) {
@@ -277,25 +278,5 @@ public class CircularSeekbar extends View {
 	public static int px2Dp(Context context, float pxValue) {
 		final float scale = context.getResources().getDisplayMetrics().density;
 		return (int) (pxValue / scale + 0.5f);
-	}
-
-	public static interface OnProgressChangeListener {
-		void onProgressBack(int progress);
-	}
-
-	public OnProgressChangeListener onProgressChangeListener;
-
-	public void setOnProgressChangeListener(OnProgressChangeListener onProgressChangeListener) {
-		this.onProgressChangeListener = onProgressChangeListener;
-	}
-
-	private interface OnInitListener {
-		void back(boolean init);
-	}
-
-	private OnInitListener onInitListener;
-
-	public void setOnInitListener(OnInitListener onInitListener) {
-		this.onInitListener = onInitListener;
 	}
 }
