@@ -178,7 +178,13 @@ public class CircularSeekbarSE extends View {
 
 		if (!isInited) {
 			isInited = true;
+			onInitListener.back(true);
 		}
+
+		if (onProgressChangeListener != null) {
+			onProgressChangeListener.onProgressBack(angleStart + 90, angleEnd);
+		}
+
 		super.onDraw(canvas);
 	}
 
@@ -292,5 +298,51 @@ public class CircularSeekbarSE extends View {
 	public static int px2Dp(Context context, float pxValue) {
 		final float scale = context.getResources().getDisplayMetrics().density;
 		return (int) (pxValue / scale + 0.5f);
+	}
+
+	public static interface OnProgressChangeListener {
+		void onProgressBack(float start, float end);
+	}
+
+	private OnProgressChangeListener onProgressChangeListener;
+
+	public void setOnProgressChangeListener(OnProgressChangeListener onProgressChangeListener) {
+		this.onProgressChangeListener = onProgressChangeListener;
+	}
+
+	private interface OnInitListener {
+		void back(boolean init);
+	}
+
+	private OnInitListener onInitListener;
+
+	private void setOnInitListener(OnInitListener onInitListener) {
+		this.onInitListener = onInitListener;
+	}
+
+	//第一次设置的时候需要判断控件是否初始化完成，如果还没有初始化完成需要等待
+	public void setProgress(final float start, final float end) {
+		if (!isInited) {
+			setOnInitListener(new OnInitListener() {
+				@Override
+				public void back(boolean init) {
+					if (init) {
+						setProgress2(start, end);
+					}
+				}
+			});
+		} else {
+			setProgress2(start, end);
+		}
+	}
+
+	private void setProgress2(float start, float end) {
+		float sx = (float) (cx + ringRadius * Math.cos(Math.toRadians(start) - (Math.PI / 2)));
+		float sy = (float) (cy + ringRadius * Math.sin(Math.toRadians(start) - (Math.PI / 2)));
+		movedStart(sx, sy);
+
+		float ex = (float) (cx + ringRadius * Math.cos(Math.toRadians(end) - (Math.PI / 2)));
+		float ey = (float) (cy + ringRadius * Math.sin(Math.toRadians(end) - (Math.PI / 2)));
+		movedEnd(ex, ey);
 	}
 }

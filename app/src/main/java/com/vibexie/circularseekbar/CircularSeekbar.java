@@ -295,7 +295,7 @@ public class CircularSeekbar extends View {
 
 	private OnInitListener onInitListener;
 
-	public void setOnInitListener(OnInitListener onInitListener) {
+	private void setOnInitListener(OnInitListener onInitListener) {
 		this.onInitListener = onInitListener;
 	}
 }
