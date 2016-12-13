@@ -17,16 +17,16 @@ import android.view.View;
 
 public class CircularSeekbarSE extends View {
 	private static final String TAG = "CircularSeekbarSE";
+
 	private Context mContext;
 
-	private Bitmap mPointEnd;// 点的图片
+	private Bitmap mPointEnd;// 起始点的图片
+
 	private Bitmap mPointStart;// 点的图片
 
 	private Paint backRing;// 背景圆环画笔
 
 	private Paint frontRing;// 前面圆环画笔
-
-	private Paint beginRing; //圆环开始点
 
 	private Paint progressTextPaint; // 显示进度文字的画笔
 
@@ -52,9 +52,11 @@ public class CircularSeekbarSE extends View {
 
 	private float innerRadius;// 圆环内部的半径，即可控拖拽区域内圆环
 
-	private float angleStart = 0;// 弧度值
+	private float angleStart = 0;// 起点弧度值
 
-	private float angleEnd = 0;// 弧度值
+	private float angleEnd = 0;// 终点弧度值
+
+	private float sweepAngle = 0;
 
 	private float left, right, top, bottom;
 
@@ -63,7 +65,7 @@ public class CircularSeekbarSE extends View {
 	private boolean isInited = false;
 
 	// 设定默认颜色值
-	private static int[] mColors={0xfff7ffb2, 0xffa2e9b5, 0xff54d4b8};
+	private static int[] mColors={Color.GREEN, Color.BLUE, Color.RED};
 
 	public CircularSeekbarSE(Context context) {
 		super(context);
@@ -90,10 +92,6 @@ public class CircularSeekbarSE extends View {
 		frontRing.setAntiAlias(true);
 		frontRing.setStrokeWidth(ringWidth * 2 + dp2Px(mContext, 1));
 		frontRing.setStyle(Paint.Style.STROKE);
-
-		beginRing = new Paint();
-		beginRing.setColor(mColors[0]);
-		beginRing.setAntiAlias(true);
 
 		rect = new RectF();
 		mPointEnd = BitmapFactory.decodeResource(context.getResources(), R.drawable.touch2);
@@ -144,12 +142,23 @@ public class CircularSeekbarSE extends View {
 		// 画背景圆环
 		canvas.drawCircle(cx, cy, ringRadius, backRing);
 
-        // 起始位置画一个圆点
-		canvas.drawCircle(cx, cy - ringRadius, (ringWidth * 2 + dp2Px(mContext, 1)) / 2, beginRing);
+		// 设定当前比例
+		for (int i = 0; i < mColors.length; i++) {
+			positions[i] = (((float) (i) / (mColors.length - 1)) * (sweepAngle / 360f));
+		}
+
+		// 新建渲染器
+		SweepGradient shader = new SweepGradient(cx, cy, mColors, positions);
+		// 新建矩阵,将渲染器旋转90度,从正上方开始
+		Matrix matrix = new Matrix();
+		Log.e(TAG, "angleStart = " + angleStart + "   angleEnd = " + angleEnd);
+		matrix.setRotate(angleStart, cx, cy);
+		shader.setLocalMatrix(matrix);
+		// 设置渲染器
+		frontRing.setShader(shader);
 
 		// 画前面的圆环，每次刷新界面主要是改变这里的angle的值
-		Log.e(TAG, "angleStart=" + angleStart + "   angleEnd="+ angleEnd);
-		canvas.drawArc(rect, angleStart, angleEnd, false, frontRing);
+		canvas.drawArc(rect, angleStart, sweepAngle, false, frontRing);
 
 		// 画触摸点的图片
 		canvas.drawBitmap(mPointStart, pointXStart - (mPointStart.getWidth()) / 2, pointYStart - (mPointStart.getWidth()) / 2, null);
@@ -217,7 +226,6 @@ public class CircularSeekbarSE extends View {
 
 		// 将角度转换成弧度
 		angleEnd = (float) ((float) ((Math.toDegrees(Math.atan2(x - cx, cy - y)) + 360.0)) % 360.0);
-		float rawAngleEnd = angleEnd;
 
 		// 使弧度值永远为正
 		if (angleEnd < 0) {
@@ -227,15 +235,12 @@ public class CircularSeekbarSE extends View {
 		angleStart = (float) ((float) ((Math.toDegrees(Math.atan2(pointXStart - cx, cy - pointYStart)) + 360.0)) % 360.0);
 
 		if (angleEnd < angleStart) {
-			angleEnd = 360 - angleStart + rawAngleEnd;
+			sweepAngle = 360 - angleStart + angleEnd;
 		} else {
-			angleEnd = angleEnd - angleStart;
+			sweepAngle = angleEnd - angleStart;
 		}
 
-		Log.e(TAG, "----angleStart=" + angleStart + "   angleEnd=" + angleEnd);
 		angleStart += 270;
-
-
 
 		pointXEnd = (float) (cx + ringRadius * Math.cos(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
 		pointYEnd = (float) (cy + ringRadius * Math.sin(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
@@ -248,18 +253,17 @@ public class CircularSeekbarSE extends View {
 
 		// 将角度转换成弧度
 		angleStart = (float) ((float) ((Math.toDegrees(Math.atan2(x - cx, cy - y)) + 360.0)) % 360.0);
-
 		angleEnd = (float) ((float) ((Math.toDegrees(Math.atan2(pointXEnd - cx, cy - pointYEnd)) + 360.0)) % 360.0);
-		float rawAngleEnd = angleEnd;
-		angleEnd = angleEnd - angleStart;
 
 		// 使弧度值永远为正
 		if (angleStart < 0) {
 			angleStart += 2 * Math.PI;
 		}
 
-		if (angleStart > rawAngleEnd) {
-			angleEnd = 360 - angleStart + rawAngleEnd;
+		if (angleStart > angleEnd) {
+			sweepAngle = 360 - angleStart + angleEnd;
+		} else {
+			sweepAngle = angleEnd - angleStart;
 		}
 
 		angleStart -= 90;

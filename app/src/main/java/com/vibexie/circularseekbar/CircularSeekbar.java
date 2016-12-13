@@ -144,10 +144,7 @@ public class CircularSeekbar extends View {
         // 起始位置画一个圆点
 		canvas.drawCircle(cx, cy - ringRadius, (ringWidth * 2 + dp2Px(mContext, 1)) / 2, beginRing);
 
-		// 设定当前比例
-		for (int i = 0; i < mColors.length; i++) {
-			positions[i] = (((float) (i) / (mColors.length - 1)) * getProgressPercent() / 100);
-		}
+
 
 		// 新建渲染器
 		SweepGradient shader = new SweepGradient(cx, cy, mColors, positions);
@@ -247,7 +244,10 @@ public class CircularSeekbar extends View {
 		return progressPercent;
 	}
 
-	public void setProgress(final float progress) {
+	public void setProgress(final float progress) {// 设定当前比例
+		for (int i = 0; i < mColors.length; i++) {
+			positions[i] = (((float) (i) / (mColors.length - 1)) * getProgressPercent() / 100);
+		}
 		if (!isInited) {
 			setOnInitListener(new OnInitListener() {
 				@Override
