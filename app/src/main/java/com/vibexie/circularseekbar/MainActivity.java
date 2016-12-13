@@ -28,6 +28,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "start = " + start + "   end = " + end);
             }
         });
-        circularSeekbarSE.setProgress(99, 290);
+        circularSeekbarSE.setProgress(300, 120);
     }
 }

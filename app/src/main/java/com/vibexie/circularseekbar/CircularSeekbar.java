@@ -65,7 +65,7 @@ public class CircularSeekbar extends View {
 	private boolean isInited = false;
 
 	// 设定默认颜色值
-	private static int[] mColors={0xfff7ffb2, 0xffa2e9b5, 0xff54d4b8};
+	private static int[] mColors={Color.RED, Color.GREEN, Color.BLUE};
 
 	public CircularSeekbar(Context context) {
 		super(context);
@@ -144,7 +144,9 @@ public class CircularSeekbar extends View {
         // 起始位置画一个圆点
 		canvas.drawCircle(cx, cy - ringRadius, (ringWidth * 2 + dp2Px(mContext, 1)) / 2, beginRing);
 
-
+		for (int i = 0; i < mColors.length; i++) {
+			positions[i] = (((float) (i) / (mColors.length - 1)) * getProgressPercent() / 100);
+		}
 
 		// 新建渲染器
 		SweepGradient shader = new SweepGradient(cx, cy, mColors, positions);
@@ -245,9 +247,6 @@ public class CircularSeekbar extends View {
 	}
 
 	public void setProgress(final float progress) {// 设定当前比例
-		for (int i = 0; i < mColors.length; i++) {
-			positions[i] = (((float) (i) / (mColors.length - 1)) * getProgressPercent() / 100);
-		}
 		if (!isInited) {
 			setOnInitListener(new OnInitListener() {
 				@Override
