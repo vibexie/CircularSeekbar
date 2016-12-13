@@ -7,6 +7,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PathDashPathEffect;
+import android.graphics.PathEffect;
 import android.graphics.RectF;
 import android.graphics.SweepGradient;
 import android.media.ThumbnailUtils;
@@ -86,6 +89,13 @@ public class CircularSeekbarSE extends View {
 		backRing.setAntiAlias(true);
 		backRing.setStrokeWidth(ringWidth + dp2Px(mContext, 2));
 		backRing.setStyle(Paint.Style.STROKE);
+
+		//背景圆环增加圆点效果
+		Path path = new Path();
+		path.addCircle(0, 0, dp2Px(mContext, 4), Path.Direction.CCW);
+		PathEffect pathEffect = new PathDashPathEffect(path, dp2Px(mContext, 18), dp2Px(mContext, 4), PathDashPathEffect.Style.ROTATE);
+		backRing.setPathEffect(pathEffect);
+
 		// 初始化前面圆环
 		frontRing = new Paint();
 		frontRing.setColor(Color.parseColor("#ffffd2a9"));
