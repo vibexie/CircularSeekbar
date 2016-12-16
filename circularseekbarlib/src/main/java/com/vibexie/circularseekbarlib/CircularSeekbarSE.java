@@ -1,4 +1,4 @@
-package com.vibexie.circularseekbar;
+package com.vibexie.circularseekbarlib;
 
 import android.content.Context;
 import android.graphics.Bitmap;

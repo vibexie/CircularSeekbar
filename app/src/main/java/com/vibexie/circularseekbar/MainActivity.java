@@ -4,6 +4,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.vibexie.circularseekbarlib.CircularSeekbar;
+import com.vibexie.circularseekbarlib.CircularSeekbarSE;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 

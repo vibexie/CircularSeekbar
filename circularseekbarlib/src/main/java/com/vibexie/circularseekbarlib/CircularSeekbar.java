@@ -1,4 +1,4 @@
-package com.vibexie.circularseekbar;
+package com.vibexie.circularseekbarlib;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -11,7 +11,6 @@ import android.graphics.RectF;
 import android.graphics.SweepGradient;
 import android.media.ThumbnailUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
