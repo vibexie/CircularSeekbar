@@ -17,5 +17,5 @@ allprojects {
 
 Step 2. Add the dependency
 ``` xml
-compile 'com.github.vibexie:CircularSeekbar:v1.0'
+compile 'com.github.vibexie:CircularSeekbar:v1.1'
 ```
