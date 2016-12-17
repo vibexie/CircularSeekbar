@@ -178,7 +178,9 @@ public class CircularSeekbarSE extends View {
 
 		if (!isInited) {
 			isInited = true;
-			onInitListener.back(true);
+			if (onInitListener != null) {
+				onInitListener.back(true);
+			}
 		}
 
 		if (onProgressChangeListener != null) {

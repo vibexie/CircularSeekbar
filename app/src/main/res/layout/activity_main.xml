@@ -5,13 +5,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.vibexie.circularseekbar.CircularSeekbar
+    <com.vibexie.circularseekbarlib.CircularSeekbar
         android:id="@+id/seekBar"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
 
-    <com.vibexie.circularseekbar.CircularSeekbarSE
+    <com.vibexie.circularseekbarlib.CircularSeekbarSE
         android:id="@+id/seekBarSE"
         android:layout_width="match_parent"
         android:layout_height="0dp"
