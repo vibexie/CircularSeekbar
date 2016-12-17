@@ -1,6 +1,6 @@
 ### CircularSeekbar for Android
 
-I will update the project...
+In this library, i did not use attr to set some values, because i do not know the effect that you want. so, you need to modify a little to meet the requirements. if you do not how to modify, issue please!
  
 ![](http://qiniu.vibexie.com/github/circularseekbar_p1.gif)
 
